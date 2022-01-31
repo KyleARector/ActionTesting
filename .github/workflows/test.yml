@@ -18,3 +18,15 @@ jobs:
       with:
         branch: 'release-notes'
 
+    - name: Determine if commit is tagged
+      run: |
+        git fetch --all >/dev/null 2>&1
+        IS_TAGGED_COMMIT=$(if git describe --exact-match $GITHUB_SHA >/dev/null 2>&1; then echo "true"; else echo "false"; fi)
+        echo "IS_TAGGED_COMMIT=$IS_TAGGED_COMMIT" >> $GITHUB_ENV
+        if [ "$IS_TAGGED_COMMIT" = "true" ]; then echo "This commit is tagged, triggering release."; else echo "This commit is NOT tagged."; fi
+        if [ "$IS_TAGGED_COMMIT" = "true" ]; then echo "TAG_STRING=$(git describe --exact-match $GITHUB_SHA)" >> $GITHUB_ENV ; fi
+
+    - name: Echo Tag Version
+      if: ${{ env.IS_TAGGED_COMMIT == 'true' }}
+      run: |
+        echo ${{ env.TAG_STRING }}
